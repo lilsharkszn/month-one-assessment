@@ -149,7 +149,7 @@ This setup provisions billable AWS resources:
 ├── main.tf
 ├── variables.tf
 ├── outputs.tf
-├── terraform.tfvars   # (not committed)
+├── terraform.tfvars 
 ├── user_data/
 │   └── db_server_setup.sh
 └── README.md
