@@ -1,82 +1,175 @@
-# TechCorp Infrastructure
+🚀 TechCorp Infrastructure
 
-Terraform configuration to deploy a scalable web application infrastructure on AWS with a bastion host, load-balanced web servers, and a PostgreSQL database.
+Terraform-based infrastructure for deploying a secure, scalable, and highly available web application on AWS.
 
-## What Gets Deployed
+This project demonstrates a production-style multi-tier architecture with proper network isolation, controlled access, and modular infrastructure design.
 
-- **VPC** with public and private subnets across 2 availability zones
-- **Bastion host** for secure SSH access to private instances
-- **2x Web servers** (Apache) behind an Application Load Balancer in public subnets
-- **PostgreSQL database** in a private subnet
-- **NAT Gateway** for outbound internet access from private instances
+---
 
-## Prerequisites
+🏗️ Architecture Overview
 
-- AWS account and credentials configured locally
-- Terraform >= 1.0
-- An EC2 Key Pair in your AWS region (specified in vars)
+The infrastructure is designed using a 3-tier architecture:
 
-## Configuration
+- Networking Layer
+  
+  - Custom VPC with CIDR block
+  - Public and private subnets across multiple Availability Zones
+  - Internet Gateway and NAT Gateway
 
-1. Copy the example config:
-```bash
-cp terraform.tfvars.example terraform.tfvars
-```
+- Access Layer
+  
+  - Bastion Host for secure SSH access to private resources
 
-2. Edit `terraform.tfvars` with your values:
-```hcl
-aws_region            = "eu-west-1"  # Change as needed
-key_pair_name         = "your-key-pair-name"
-my_ip_cidr            = "YOUR_IP/32"  # Your public IP for bastion access
-```
+- Application Layer
+  
+  - Web servers (Apache) deployed in private subnets
+  - Application Load Balancer (ALB) distributing traffic
 
-> Use `/32` for a single IP address; use `/24` for a /24 subnet, etc.
+- Data Layer
+  
+  - PostgreSQL database hosted in a private subnet (no public access)
 
-3. Verify the AMI ID for your region (Amazon Linux 2):
-```bash
-aws ec2 describe-images --owners amazon --filters "Name=name,Values=amzn2-ami-hvm-*-x86_64-gp2" --region eu-west-1 --query 'Images | sort_by(@, &CreationDate) | [-1].[ImageId]'
-```
+---
 
-## Deploy
+🔐 Security Design
 
-```bash
+- SSH access restricted using IP-based CIDR whitelisting
+- No direct public access to private instances
+- Bastion host acts as a controlled entry point
+- Database is isolated in private subnet
+- Sensitive files are excluded via ".gitignore"
+
+«⚠️ This project is for learning purposes. For production, secrets manager should be integrated (AWS SSM or Secrets Manager).»
+
+---
+
+📦 Infrastructure Components
+
+Component| Description
+VPC| Isolated AWS network
+Subnets| Public + Private across 2 AZs
+Bastion Host| Secure SSH access
+Web Servers| Apache-based EC2 instances
+Load Balancer| Application Load Balancer
+Database| PostgreSQL instance
+NAT Gateway| Outbound internet for private resources
+
+---
+
+⚙️ Prerequisites
+
+- AWS account with appropriate IAM permissions
+- Terraform ≥ 1.0 installed
+- AWS CLI configured ("aws configure")
+- Existing EC2 Key Pair in your AWS region
+
+---
+
+🛠️ Configuration
+
+Create a "terraform.tfvars" file locally:
+
+aws_region    = "eu-west-1"
+key_pair_name = "your-keypair-name"
+my_ip_cidr    = "YOUR_IP/32"
+
+- Replace "YOUR_IP" with your public IP address
+- Use "/32" to restrict access to your IP only
+
+«⚠️ This file is not committed to version control.»
+
+---
+
+🚀 Deployment
+
 terraform init
+terraform validate
 terraform plan
 terraform apply
-```
 
-## Access
+---
 
-After deployment, outputs will show:
+🌐 Access
 
-- **Web App**: `http://<alb_dns_name>` (from `alb_dns_name` output)
-- **Bastion Host**: SSH via the elastic IP (from `bastion_public_ip` output)
+After deployment, Terraform outputs will provide:
 
-### SSH into instances:
+- Web Application URL
+  
+  http://<alb_dns_name>
 
-```bash
-# Access bastion
-ssh -i /path/to/key.pem ec2-user@<bastion_public_ip>
+- Bastion Host Access
+  
+  ssh -i /path/to/key.pem ec2-user@<bastion_public_ip>
 
-# From bastion, access web/db servers on private IPs
-ssh -i /path/to/key.pem ec2-user@10.0.3.10  # example private IP
-```
+---
 
-## Database
+🔑 Accessing Private Instances
 
-PostgreSQL is pre-configured with:
-- **User**: techcorp
-- **Password**: Tech1234
-- **Database**: techcorp_db
+From the bastion host:
 
-Change these credentials in `user_data/db_server_setup.sh` before deploying to production.
+ssh -i /path/to/key.pem ec2-user@<private-ip>
 
-## Cleanup
+---
 
-```bash
+🗄️ Database
+
+Database credentials are not stored in this repository.
+
+They should be managed securely using:
+
+- environment variables
+- ".tfvars" (local only)
+- or a secrets manager (recommended)
+
+---
+
+🧹 Cleanup
+
+To destroy all infrastructure:
+
 terraform destroy
-```
 
-## Cost
+---
 
-These t3 instances and NAT Gateway incur AWS charges. Estimate costs in the AWS pricing calculator before deploying.
+💰 Cost Considerations
+
+This setup provisions billable AWS resources:
+
+- EC2 instances
+- NAT Gateway (hourly + data charges)
+- Application Load Balancer
+
+«Use the AWS Pricing Calculator to estimate costs before deployment.»
+
+---
+
+📁 Project Structure
+
+.
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── terraform.tfvars   # (not committed)
+├── user_data/
+│   └── db_server_setup.sh
+└── README.md
+
+---
+
+📌 Future Improvements
+
+- Auto Scaling Group for web tier
+- HTTPS with ACM and ALB
+- Remote backend (S3 + DynamoDB)
+- CI/CD pipeline (GitHub Actions)
+- Secrets management (SSM / Secrets Manager)
+- Monitoring (CloudWatch, Prometheus, Grafana)
+
+---
+
+👨‍💻 Author - **Adejare Hassan**
+https://linkedin.com/in/jare
+
+Built as part of a Cloud/DevOps engineering learning project, focused on real-world infrastructure design and best practices.
+
+---
