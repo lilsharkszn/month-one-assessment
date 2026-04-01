@@ -1,0 +1,12 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+
+# Sensitive files
+*.pem
+
+# Plan files
+*.tfplan
